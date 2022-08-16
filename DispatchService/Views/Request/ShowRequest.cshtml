@@ -1,0 +1,103 @@
+﻿@model IEnumerable<DispatchService.Models.RequestViewModel>
+
+@{ 
+    ViewBag.Title = "Заявка №" + ViewBag.RequestId;
+}
+
+    <script type="text/javascript">
+    $(document).ready(function () {
+        $(".create-step-button").click(function () {
+            $.get('@Url.Action("AddStep", "Request", new { id = ViewBag.RequestId })', function (data) {
+                $('#dialogContent').html(data);
+                $('#modDialog').modal('show');
+            });
+        });
+
+        $(".close-step-button").click(function () {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("AddStep", "Request")',
+                data: { id: @Html.Raw(ViewBag.RequestId), days: 0, comment: "", stepId: 3 },
+                success: function () {
+                    window.location.href = '@Html.Raw(Url.Action("ShowRequest", "Request", new { id = ViewBag.RequestId }))';
+                }
+            });
+        });
+    });
+    </script>
+
+<main>
+    <div class="main-wrapper">
+        <div class="request-page">
+            <div class="top-line">
+                <button class="back-button" onclick="location.href='@Url.Action("Main", "Request")';">Назад</button>
+                <h1 class="request-title">@ViewBag.Title</h1>
+                @{
+                    if (ViewBag.User.Role.role_name == "Администратор")
+                    {
+                        <button class="edit-button" onclick="location.href='@Url.Action("EditRequest", "Request", new { id = ViewBag.RequestId })'">Редактировать</button>
+                        <button class="edit-button delete-button" onclick="location.href='@Url.Action("DeleteRequest", "Request", new { id = ViewBag.RequestId })'">Удалить</button>
+                    }
+                }
+            </div>
+            <div class="subtitle-info">
+                <div class="request-dates">
+                    <p><b>Дата создания:</b> @Model.ElementAt(0).date_begin</p>
+                    <p><b>Дата закрытия:</b> @Model.ElementAt(0).date_end</p>
+                    <p><b>Срок выполнения (дн):</b> @Model.ElementAt(0).due_date_days</p>
+                </div>
+                <div class="request-types">
+                    <p><b>Категория:</b> @Model.ElementAt(0).category</p>
+                    <p><b>Тип:</b> @Model.ElementAt(0).type</p>
+                    <p><b>Подразделение:</b> @Model.ElementAt(0).division</p>
+                </div>
+            </div>
+            <div class="address-box">
+                <h2 class="request-subtitle">Адрес</h2>
+                <p><b>Улица: </b>@Model.ElementAt(0).street &nbsp; <b>Дом: </b>@Model.ElementAt(0).house &nbsp; <b>Квартира: </b>@Model.ElementAt(0).flat</p>
+            </div>
+            <div class="description-box">
+                <h2 class="request-subtitle">Описание</h2>
+                <p>@Model.ElementAt(0).description</p>
+            </div>
+            <div class="step-box">
+                <h2 class="request-subtitle">Этапы выполнения</h2>
+                <table class="step-table">
+                    <tr class="step-table-row step-table-header">
+                        <td class="step-table-cell" style="width: 129px;">Этап</td>
+                        <td class="step-table-cell" style="width: 200px;">Дата начала</td>
+                        <td class="step-table-cell" style="width: 200px;">Дата завершения</td>
+                        <td class="step-table-cell" style="width: 206px;">Исполнитель</td>
+                        <td class="step-table-cell" style="width: 165px;">Должность</td>
+                        <td class="step-table-cell" style="width: 377px;">Комментарий</td>
+                    </tr>
+                    @{
+                        foreach (var step in Model)
+                        {
+                            <tr class="step-table-row step-row">
+                                <td class="step-table-cell step-subcell" style="width: 129px;">@step.step_name</td>
+                                <td class="step-table-cell step-subcell" style="width: 200px;">@step.step_date_begin</td>
+                                <td class="step-table-cell step-subcell" style="width: 200px;">@step.step_date_end</td>
+                                <td class="step-table-cell step-subcell" style="width: 206px;">@step.implemented_by</td>
+                                <td class="step-table-cell step-subcell" style="width: 165px;">@step.user_role</td>
+                                <td class="step-table-cell step-subcell" style="width: 377px;">@step.comment</td>
+                            </tr>
+                        }
+                    }
+                </table>
+                <div id="modDialog" class="modal fade in">
+                    <div id="dialogContent" class="modal-dialog"></div>
+                </div>
+                @{ 
+                    if (!Model.ElementAt(0).date_end.HasValue)
+                    {
+                        <div style="text-align: center;">
+                            <button class="create-step-button step-button" style="margin-right: 14px;">Добавить этап</button>
+                            <button class="close-step-button step-button" style="min-width: 159px;">Завершить</button>
+                        </div>
+                    }
+                }                
+            </div>
+        </div>
+    </div>
+</main>

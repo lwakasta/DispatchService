@@ -1,0 +1,46 @@
+﻿<div class="modal-content">
+    <div class="modal-header">
+        <button class="close" data-dismiss="modal" area-hidden="true">X</button>
+        <h1 class="request-title">Новый пользователь</h1>
+    </div>
+    <div class="modal-body">
+        @using (Html.BeginForm("CreateUser", "Admin", FormMethod.Post))
+        {
+            <div>
+                <p class="box-title"><b>ФИО</b></p>
+                <input type="text" id="user_name" name="user_name" class="input-box" style="width: 258px; margin-bottom: 10px;">
+            </div>
+            <div>
+                <p class="box-title"><b>Должность</b></p>
+                <select id="role_id" name="role_id" class="input-box" style="width: 258px; margin-right: 17px; margin-bottom: 10px;">
+                    @{
+                        foreach (var item in ViewBag.Roles)
+                        {
+                            <option value="@item.role_id">@item.role_name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div>
+                <p class="box-title"><b>Имя пользователя</b></p>
+                <input type="text" id="login" name="login" class="input-box" style="width: 258px; margin-bottom: 10px;">
+            </div>
+            <div>
+                <p class="box-title"><b>Пароль</b></p>
+                <input type="text" id="password" name="password" class="input-box" style="width: 258px; margin-bottom: 10px;">
+            </div>
+            <div>
+                <p class="box-title"><b>Отдел</b></p>
+                <select id="department_id" name="department_id" class="input-box" style="width: 258px; margin-right: 17px; margin-bottom: 20px;">
+                    @{
+                        foreach (var item in ViewBag.Departments)
+                        {
+                            <option value="@item.department_id">@item.department_name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <button type="submit" class="create-req-button">Добавить</button>
+        }
+    </div>
+</div>

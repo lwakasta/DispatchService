@@ -1,0 +1,61 @@
+﻿@model DispatchService.Models.User
+
+@{
+    ViewBag.Title = "Редактирование пользователя";
+}
+
+<main>
+    <div class="main-wrapper">
+        <div class="request-page create-request-page" style="min-height: 200px;">
+            <button class="back-button" style="position: relative; margin-bottom: 20px; min-width: 124px;" onclick="location.href='@Url.Action("Main", "Admin")';">Назад</button>
+            @using (Html.BeginForm("EditUser", "Admin", FormMethod.Post))
+            {
+                <div style="display: none;" name="id">@Model.user_id</div>
+                <h1 class="request-title" style="margin-bottom: 26px; font-size: 32px;">Редактирование пользователя</h1>
+                <div>
+                    <p class="box-title"><b>ФИО</b></p>
+                    <input type="text" id="user_name" name="user_name" class="input-box" style="width: 278px; margin-bottom: 10px;" value="@Model.user_name">
+                </div>
+                <div>
+                    <p class="box-title"><b>Должность</b></p>
+                    <select id="role_id" name="role_id" class="input-box" style="width: 278px; margin-right: 17px; margin-bottom: 10px;">
+                        @{
+                            foreach (var item in ViewBag.Roles)
+                            {
+                                if (item.role_id == Model.role_id)
+                                {
+                                    <option selected value="@item.role_id">@item.role_name</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.role_id">@item.role_name</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <input type="text" id="login" name="login" style="display: none;" value="@Model.login">
+                <input type="text" id="password" name="password" style="display: none;" value="@Model.password">
+                <div>
+                    <p class="box-title"><b>Отдел</b></p>
+                    <select id="department_id" name="department_id" class="input-box" style="width: 278px; margin-right: 17px; margin-bottom: 20px;">
+                        @{
+                            foreach (var item in ViewBag.Departments)
+                            {
+                                if (item.department_id == Model.department_id)
+                                {
+                                    <option selected value="@item.department_id">@item.department_name</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.department_id">@item.department_name</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="create-req-button" style="min-width: 144px;">Сохранить</button>
+            }
+        </div>
+    </div>
+</main>

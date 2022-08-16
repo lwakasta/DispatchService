@@ -1,0 +1,311 @@
+﻿@model IEnumerable<DispatchService.Models.RequestViewModel>
+
+@{
+    ViewBag.Title = "Заявки";
+}
+
+<link href='@Url.Content("~/Content/themes/base/jquery-ui.css")' rel="stylesheet" type="text/css" />
+<script src="~/Scripts/date.format.js"></script>
+<script src='@Url.Content("~/Scripts/jquery-ui-1.13.1.min.js")' type="text/javascript"></script>
+<script src='@Url.Content("~/Scripts/ASPSnippets_Pager.min.js")'></script>
+<style>
+    .ui-tooltip {
+        padding: 8px;
+        position: absolute;
+        z-index: 9999;
+        max-width: 431px;
+        min-height: 20px;
+        -webkit-box-shadow: 0 0 2px #aaa;
+        box-shadow: 0 0 2px #aaa;
+        word-wrap: break-word;
+    }
+
+    .ui-widget.ui-widget-content {
+        border: 1px solid #7D76A7;
+    }
+
+    .ui-tooltip:before {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-width: 8px;
+        border-style: solid;
+        border-color: transparent transparent #7D76A7 transparent;
+        top: -17px;
+        left: 7px;
+    }
+
+    .ui-tooltip:after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-width: 8px;
+        border-style: solid;
+        border-color: transparent transparent #FFFFFF transparent;
+        top: -16px;
+        left: 7px;
+    }
+
+    body .ui-tooltip {
+        border-width: 0px;
+    }
+</style>
+<script>
+    $.datepicker.regional['ru'] = {
+        closeText: 'Закрыть',
+        prevText: 'Предыдущий',
+        nextText: 'Следующий',
+        currentText: 'Сегодня',
+        monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+        monthNamesShort: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+        dayNames: ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'],
+        dayNamesShort: ['вск', 'пнд', 'втр', 'срд', 'чтв', 'птн', 'сбт'],
+        dayNamesMin: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+        weekHeader: 'Не',
+        dateFormat: 'dd.mm.yy',
+        firstDay: 1,
+        isRTL: false,
+        showMonthAfterYear: false,
+        yearSuffix: ''
+    };
+    $.datepicker.setDefaults($.datepicker.regional['ru']);
+
+    $(function () {
+        $("#start-date").datepicker();
+        $("#end-date").datepicker();
+    })
+</script>
+
+<script type="text/javascript">
+        $(document).ready(function () {
+            $(function () {
+                GetRequests(1);
+            });
+
+            $('#show_requests').click(function (e) {
+                e.preventDefault();
+                GetRequests(1);
+            });
+
+            $("#reset_filters").click(function (e) {
+                e.preventDefault();
+                $("#division").val("");
+                $("#street").val("");
+                $("#house").val("");
+                $("#flat").val("");
+                $("#category").val("");
+                $("#start-date").val("@Html.Raw(ViewBag.StartDate)");
+                $("#end-date").val("@Html.Raw(ViewBag.EndDate)");
+                $(".search-checkbox-item").each(function () {                    
+                    if ($(this).attr('id') == "ended" || $(this).attr('id') == "overdue") {
+                        $(this).prop('checked', false);
+                    } else {      
+                        $(this).prop('checked', true);
+                    }
+                });
+
+                GetRequests(1);
+            });
+
+            $("body").on("click", ".Pager .page", function () {
+                GetRequests(parseInt($(this).attr('page')));
+            });
+
+            function GetRequests(pageIndex) {
+                var status_v = [];
+                $("input[name='request_status']:checked").each(function (i) {
+                    status_v[i] = $(this).val();
+                });
+
+                var type_v = [];
+                $("input[name='request_type']:checked").each(function (i) {
+                    type_v[i] = $(this).val();
+                });
+
+                var sm = {};
+                sm.division = $("#division").val();
+                sm.street = $("#street").val();
+                sm.house = $("#house").val();
+                sm.flat = $("#flat").val();
+                sm.status = status_v;
+                sm.type = type_v;
+                sm.category = $("#category").val();
+                sm.startDate = $("#start-date").val();
+                sm.endDate = $("#end-date").val();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("SearchRequests", "Request")',
+                    data: { sm: sm, pageIndex: pageIndex},
+                    success: OnSuccess,
+                    failure: function (response) {
+                        alert(response.d);
+                    },
+                    error: function (response) {
+                        alert(response.d);
+                    }
+                });
+
+                function OnSuccess(response) {
+                    var model = response;
+                    $('#result').empty();
+                    $.each(model.Requests, function () {
+                        var date_end_form;
+                        if (this.date_end !== null) {
+                            date_end_form = (new Date(parseInt(this.date_end.substr(6)))).format("dd.mm.yyyy HH:MM:ss")
+                        } else {
+                            date_end_form = "-";
+                        }
+                        $('#result').append('<tr class="request-row table-row" style="' + this.color + this.border + '" onclick="location.href=\'/Request/ShowRequest/' + this.request_id + '\';">'
+                            + '<td class="table-cell" style="width: 70px;">' + this.request_id + '</td>'
+                            + '<td class="table-cell" style="width: 170px;">' + this.type + '<br>' + this.category + '</td>'
+                            //+ '<td class="table-cell" style="width: 157px;">' + this.category + '</td>'
+                            + '<td class="table-cell" style="width: 252px;"> ул. ' + this.street + ', д.' + this.house + ', кв.' + this.flat + '</td>'
+                            + '<td class="table-cell desc" style="width: 418px;" title="' + this.description + '">' + this.description.substr(0, 50) + (this.description.substr(51,2) == "" ? '' : '...') + '</td>'
+                            + '<td class="table-cell" style="width: 155px;">' + (new Date(parseInt(this.date_begin.substr(6)))).format("dd.mm.yyyy HH:MM:ss") + '</td>'
+                            + '<td class="table-cell" style="width: 155px;">' + date_end_form + '</td>'
+                            + '<td class="table-cell" style="width: 153px; font-size: 20px;">' + /*(new Date(parseInt(this.due_date.substr(6)))).format("dd.mm.yyyy HH:MM:ss")*/ this.days_in_work + '</td>'
+                            + '</tr>');
+                        $(".desc").tooltip({
+                            position: {
+                                my: "left top",
+                                at: "left+13 bottom+5"
+                            },
+                            border: {
+
+                            }
+                        });
+                    });
+                    $(".Pager").ASPSnippets_Pager({
+                        ActiveCssClass: "current",
+                        PagerCssClass: "pager",
+                        PageIndex: model.PageIndex,
+                        PageSize: model.PageSize,
+                        RecordCount: model.RecordCount
+                    });
+                };
+            };
+
+            $("input.search-box").each(function () {
+                var $obj = $(this);
+                $obj.autocomplete({
+                    source: function (request, response) {
+                        $.ajax({
+                            url: '@Url.Action("AutocompleteSearch", "Request")',
+                            dataType: "json",
+                            data: {
+                                prefix: $obj.val(),
+                                element_id: $obj.attr('id'),
+                                divisionName: $("#division").val(),
+                                streetName: $("#street").val(),
+                                houseNumber: $("#house").val()
+                            },
+                            success: function (data) {
+                                response($.map(data, function (item) {
+                                    return { value: item.name, label: item.name };
+                                }));
+                            },
+                            error: function () {
+                                alert('error');
+                            }
+                        })
+                    },
+                    minLength: 0
+                });
+
+                $obj.click(function () {
+                    $obj.autocomplete("search", "")[0].focus();
+                });
+            });
+
+            $("#create_request").click(function () {
+                var street = $("#street").val();
+                var house = $("#house").val();
+                var flat = $("#flat").val();
+                var url = '@Html.Raw(@Url.Action("CreateRequest", "Request", new { streetName = "__street__", houseNumber = "__house__", flatNumber = "__flat__"}))';
+                url = url.replace('__street__', street);
+                url = url.replace('__house__', house);
+                url = url.replace('__flat__', flat);
+                window.location.href = url;
+            });
+        });
+</script>
+
+<main>
+    <div class="main-wrapper">
+        <div class="search-line">
+            <div class="left-box">
+                <div class="search-line-item">
+                    <p class="search-title">Подразделение</p>
+                    <input type="text" class="search-box" id="division" style="width: 204px;">
+                </div>
+                <div class="search-line-item">
+                    <p class="search-title">Улица</p>
+                    <input type="text" class="search-box" id="street" style="width: 233px;">
+                </div>
+                <div class="search-line-item">
+                    <p class="search-title">Дом</p>
+                    <input type="text" class="search-box" id="house" style="width: 104px;">
+                </div>
+                <div class="search-line-item">
+                    <p class="search-title">Квартира</p>
+                    <input type="text" class="search-box" id="flat" style="width: 104px;">
+                </div>
+                <div class="search-line-item">
+                    <p class="search-title" style="margin-top: -24px;">Категория</p>
+                    <input type="text" class="search-box" id="category" style="width: 354px; margin-top: 0px;">
+                </div>
+                <div class="search-line-item">
+                    <p class="search-title" style="margin-top: -24px;">Диапазон дат</p>
+                    <input type="text" class="search-box" id="start-date" style="width: 153px; margin-top: 0px;" value="@ViewBag.StartDate">
+                    <p class="search-title" style="margin-top: -65px; margin-left: 189px;">-</p>
+                    <input type="text" class="search-box" id="end-date" style="width: 153px; margin-top: 0px; margin-left: 27px;" value="@ViewBag.EndDate">
+                </div>
+            </div>    
+            <div class="search-line-item">
+                <p class="search-title">Статус заявок</p>
+                <div class="search-checkboxes">
+                    <p><input type="checkbox" class="search-checkbox-item" id="new" name="request_status" value="new" checked="checked">Новые</p>
+                    <p><input type="checkbox" class="search-checkbox-item" id="in_process" name="request_status" value="in_process" checked="checked">В работе</p>
+                    <p><input type="checkbox" class="search-checkbox-item" id="ended" name="request_status" value="ended">Завершенные</p>
+                    <p><input type="checkbox" class="search-checkbox-item" id="overdue" name="request_status" value="overdue">Просроченные</p>
+                </div>
+            </div>
+            <div class="search-line-item">
+                <p class="search-title">Тип заявок</p>
+                <div class="search-checkboxes" style="width: 146px;">
+                    <p><input type="checkbox" class="search-checkbox-item" id="emerge" name="request_type" value="emerge" checked="checked">Аварийные</p>
+                    <p><input type="checkbox" class="search-checkbox-item" id="request" name="request_type" value="request" checked="checked">Типовые</p>
+                    <p><input type="checkbox" class="search-checkbox-item" id="claim" name="request_type" value="claim" checked="checked">Жалобы</p>
+                </div>
+            </div>        
+            <div class="but-box">
+                <div style="width: 113px;">
+                    <button type="button" class="search-but" id="show_requests">Применить</button>
+                    <button type="button" class="search-but" id="reset_filters">Сбросить</button>
+                </div>
+                <div style="margin-left: 11px;">
+                    <button type="submit" class="search-but create-but" id="create_request">Создать</button>
+                </div>
+            </div>
+        </div>
+
+        <table class="request-table">
+            <tr class="request-row table-header">
+                <td class="table-cell" style="width: 70px;">№</td>
+                <td class="table-cell" style="width: 170px;">Тип<br>Категория</td>
+                @*<td class="table-cell" style="width: 157px;">Категория</td>*@
+                <td class="table-cell" style="width: 252px;">Адрес</td>
+                <td class="table-cell" style="width: 418px;">Описание</td>
+                <td class="table-cell" style="width: 155px;">Дата создания</td>
+                <td class="table-cell" style="width: 155px;">Дата закрытия</td>
+                <td class="table-cell" style="width: 153px;">Дней в работе</td>
+            </tr>
+
+            <tbody id="result"></tbody>
+        </table>
+        <div class="Pager"></div>
+    </div>
+</main>

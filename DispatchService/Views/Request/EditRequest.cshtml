@@ -1,0 +1,119 @@
+﻿@model DispatchService.Models.RequestViewModel
+
+@{
+    ViewBag.Title = "Редактирование заявки";
+}
+
+<link href='@Url.Content("~/Content/themes/base/jquery-ui.css")' rel="stylesheet" type="text/css" />
+<script src='@Url.Content("~/Scripts/jquery-ui-1.13.1.min.js")' type="text/javascript"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("input.input-box").each(function () {
+            var $obj = $(this);
+            $obj.autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("AutocompleteSearch", "Request")',
+                        dataType: "json",
+                        data: {
+                            prefix: $obj.val(),
+                            element_id: $obj.attr('id'),
+                            divisionName: "",
+                            streetName: $("#street").val(),
+                            houseNumber: $("#house").val()
+                        },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { value: item.name, label: item.name };
+                            }));
+                        },
+                        error: function () {
+                            alert('error');
+                        }
+                    })
+                },
+                minLength: 0
+            });
+
+            $obj.click(function () {
+                $obj.autocomplete("search", "")[0].focus();
+            });
+        });
+    })
+</script>
+
+<main>
+    <div class="main-wrapper">
+        <div class="request-page create-request-page">
+            <button class="back-button" style="position: relative; margin-bottom: 20px; min-width: 124px;" onclick="location.href='@Url.Action("ShowRequest", "Request", new { id = Model.request_id })';">Назад</button>
+            @using (Html.BeginForm("EditRequest", "Request", FormMethod.Post))
+            {
+                <div style="display: none;" name="id">@Model.request_id</div>
+                <h1 class="request-title" style="margin-bottom: 26px;">Редактирование заявки</h1>
+                <h2 class="request-subtitle" style="margin-bottom: 7px;">Адрес</h2>
+                <p style="color: red; font-weight: bold; font-size: 20px; margin-bottom: 3px;">@ViewBag.Message</p>
+                <div class="create-address-box">
+                    <div>
+                        <p class="box-title">Улица</p>
+                        <input type="text" id="street" name="street" class="input-box" style="width: 258px;" value="@Model.street">
+                    </div>
+                    <div>
+                        <p class="box-title">Дом</p>
+                        <input type="text" id="house" name="house" class="input-box" style="width: 113px;" value="@Model.house">
+                    </div>
+                    <div>
+                        <p class="box-title">Квартира</p>
+                        <input type="text" id="flat" name="flat" class="input-box" style="width: 113px;" value="@Model.flat">
+                    </div>
+                </div>
+                <div class="types-box">
+                    <div>
+                        <p class="box-title"><b>Категория</b></p>
+                        <select id="category" name="category" class="input-box" style="width: 221px; margin-right: 17px;" value="@Model.category">
+                            @{
+                                foreach (var item in ViewBag.Categories)
+                                {
+                                    if (item.category_name == Model.category)
+                                    {
+                                        <option selected value="@item.category_id">@item.category_name</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.category_id">@item.category_name</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <p class="box-title"><b>Тип заявки</b></p>
+                        <select id="type" name="type" class="input-box" style="width: 150px;">
+                            @{
+                                foreach (var item in ViewBag.Types)
+                                {
+                                    if (item.type_name == Model.type)
+                                    {
+                                        <option selected value="@item.type_id">@item.type_name</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.type_id">@item.type_name</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <p class="box-title"><b>Описание</b></p>
+                    <textarea name="description" id="description" cols="30" rows="10" class="input-box create-desc-box">@Model.description</textarea>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <p class="box-title"><b>Срок выполнения (дн.)</b></p>
+                    <input type="number" name="days" class="input-box" style="width: 121px;" id="days" value="@Model.due_date_days" min="1">
+                </div>
+                <button type="submit" class="create-req-button" style="min-width: 144px;">Сохранить</button>
+            }
+        </div>
+    </div>
+</main>

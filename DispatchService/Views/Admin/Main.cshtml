@@ -1,0 +1,230 @@
+﻿@{
+    ViewBag.Title = "Панель управления";
+}
+
+<link href='@Url.Content("~/Content/themes/base/jquery-ui.css")' rel="stylesheet" type="text/css" />
+<link href='@Url.Content("~/Content/admin_style.css")' rel="stylesheet" type="text/css" />
+<script src='@Url.Content("~/Scripts/jquery-ui-1.13.1.min.js")' type="text/javascript"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#tabs").tabs();
+
+        $("#multiple").click(function () {
+            $("#flat-container").hide();
+            $("#multiple").hide();
+            $("#flat").val("");
+
+            $("#multiple-flats").css("display", "flex");
+            $("#uno").show();
+        });
+
+        $("#uno").click(function () {
+            $("#flat-container").show();
+            $("#multiple").show();
+
+            $("#multiple-flats").hide();
+            $("#uno").hide();
+            $("#flat-from").val("");
+            $("#flat-to").val("");
+        });
+
+        $(".add-user").click(function () {
+            $.get('@Url.Action("CreateUser", "Admin")', function (data) {
+                $('#dialogContent').html(data);
+                $('#modDialog').modal('show');
+            });
+        });
+
+        $(".add-category").click(function () {
+            $.get('@Url.Action("CreateCategory", "Admin")', function (data) {
+                $('#dialogContent').html(data);
+                $('#modDialog').modal('show');
+            });
+        });
+
+        $(".add-address").click(function () {
+            var division = $("#division").val();
+            var street = $("#street").val();
+            var house = $("#house").val();
+            var flat = $("#flat").val();
+            var flat_from = $("#flat-from").val();
+            var flat_to = $("#flat-to").val();
+            var url = '@Html.Raw(@Url.Action("AddAddress", "Admin", new { divisionName = "__division__", streetName = "__street__", houseNumber = "__house__", flatNumber = "__flat__", flatFrom = "__flatFrom__", flatTo = "__flatTo__"}))';
+            url = url.replace('__division__', division);
+            url = url.replace('__street__', street);
+            url = url.replace('__house__', house);
+            url = url.replace('__flat__', flat);
+            url = url.replace('__flatFrom__', flat_from);
+            url = url.replace('__flatTo__', flat_to);
+            window.location.href = url;
+        });
+
+        $("input.search-box").each(function () {
+            var $obj = $(this);
+            $obj.autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("AutocompleteSearch", "Request")',
+                        dataType: "json",
+                        data: {
+                            prefix: $obj.val(),
+                            element_id: $obj.attr('id'),
+                            divisionName: $("#division").val(),
+                            streetName: $("#street").val(),
+                            houseNumber: $("#house").val()
+                        },
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return { value: item.name, label: item.name };
+                            }));
+                        },
+                        error: function () {
+                            alert('error');
+                        }
+                    })
+                },
+                minLength: 0
+            });
+
+            $obj.click(function () {
+                $obj.autocomplete("search", "")[0].focus();
+            });
+        });
+    });
+</script>
+
+<main>
+    <div id="tabs" class="main-wrapper">
+        <ul>
+            <li id="one"><a href="#tabs-1">Пользователи</a></li>
+            <li id="two"><a href="#tabs-2">Адреса</a></li>
+            <li id="three"><a href="#tabs-3">Категории</a></li>
+        </ul>
+        <div id="modDialog" class="modal fade in">
+            <div id="dialogContent" class="modal-dialog"></div>
+        </div>
+        <div id="tabs-1">
+            <div style="display: flex;">
+                <button class="admin-but add-user">Добавить</button>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">№</th>
+                        <th style="width: 270px;">ФИО</th>
+                        <th style="width: 220px;">Должность</th>
+                        <th style="width: 300px;">Отдел</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        foreach (var user in ViewBag.Users)
+                        {
+                            <tr>
+                                <td style="width: 80px;">@user.user_id</td>
+                                <td style="width: 270px;">@user.user_name</td>
+                                <td style="width: 220px;">@user.Role.role_name</td>
+                                <td style="width: 300px;">@user.Department.department_name</td>
+                                <td><a href="@Url.Action("EditUser", "Admin", new { id = user.user_id })">Редактировать</a> | <a href="@Url.Action("DeleteUser", "Admin", new { id = user.user_id })">Удалить</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div id="tabs-2">
+            <div style="display: flex; margin-top: -14px; margin-bottom: -15px;">
+                <div class="search-line-item">
+                    <p class="search-title" style="margin-left: 0px;">Подразделение</p>
+                    <input type="text" class="search-box" id="division" style="width: 233px; margin-left: 0px;" value="@ViewBag.Division">
+                </div>
+                <div class="search-line-item">
+                    <p class="search-title">Улица</p>
+                    <input type="text" class="search-box" id="street" style="width: 233px;">
+                </div>
+                <div class="search-line-item">
+                    <p class="search-title">Дом</p>
+                    <input type="text" class="search-box" id="house" style="width: 90px;">
+                </div>
+                <div class="search-line-item" style="display: flex; flex-wrap: wrap; flex-direction: row; border: 1px solid #7D76A7; border-radius: 4px; margin-left: 23px; margin-bottom: 30px; height: 100px; padding-left: 10px; padding-right: 10px;">
+                    <p class="search-title" style="margin-left: 0px;">Квартира</p>
+                    <div id="flat-container">
+                        <input type="text" class="search-box" id="flat" style="width: 90px; margin-left: 0px;">
+                    </div>
+                    <div style="display: none; flex-wrap: wrap; flex-direction: row;" id="multiple-flats">
+                        <input type="number" class="search-box" id="flat-from" style="width: 90px; margin-left: 0px;">
+                        <p style="margin-top: 50px; margin-left: 10px;">-</p>
+                        <input type="number" class="search-box" id="flat-to" style="width: 90px; margin-left: 10px;">
+                    </div>
+                    <div style="margin-left: 13px; margin-top: 40px;">
+                        <button class="admin-but" id="multiple">Несколько</button>
+                        <button class="admin-but" id="uno" style="display: none;">Одна</button>
+                    </div>
+                </div>
+                <div style="margin-left: 23px; margin-top: 41px;">
+                    <button class="admin-but add-address">Добавить адрес</button>
+                </div>
+            </div>
+            <table class="admin-table" style="width: 1036px;">
+                <thead>
+                    <tr>
+                        <th style="width: 170px;">Улица</th>
+                        <th style="width: 80px;">Дом</th>
+                        <th style="width: 813px;">Квартиры</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        for (int i = 0; i < ViewBag.Addresses.Count; i++)
+                        {
+                            int rowCount = ViewBag.Addresses[i].Houses.Count;
+                            string streetName = ViewBag.Addresses[i].street;
+
+                            <tr>
+                                <td rowspan="@rowCount">@streetName</td>
+                                <td>@ViewBag.Addresses[i].Houses[0].house</td>
+                                <td>@string.Join(", ", ViewBag.Addresses[i].Houses[0].flats.ToArray())</td>
+                            </tr>
+
+                            for (int j = 1; j < ViewBag.Addresses[i].Houses.Count; j++)
+                            {
+                                <tr>
+                                    <td>@ViewBag.Addresses[i].Houses[j].house</td>
+                                    <td>@string.Join(", ", ViewBag.Addresses[i].Houses[j].flats.ToArray())</td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div id="tabs-3">
+            <div style="display: flex;">
+                <button class="admin-but add-category">Добавить</button>
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">№</th>
+                        <th style="width: 270px;">Категория</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        foreach (var cat in ViewBag.Categories)
+                        {
+                            <tr>
+                                <td style="width: 80px;">@cat.category_id</td>
+                                <td style="width: 270px;">@cat.category_name</td>
+                                <td><a href="@Url.Action("EditCategory", "Admin", new { id = cat.category_id })">Редактировать</a> | <a href="@Url.Action("DeleteCategory", "Admin", new { id = cat.category_id })">Удалить</a></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>

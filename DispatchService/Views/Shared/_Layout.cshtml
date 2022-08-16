@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+
+    <link type="text/css" rel="stylesheet" href="~/Content/modal.css" />
+    <link type="text/css" rel="stylesheet" href="~/Content/site_style.css" />
+    <script src="~/Scripts/modernizr-2.8.3.js" type="text/javascript"></script>
+    <script src="~/Scripts/jquery-3.4.1.js" type="text/javascript"></script>
+    <script src="~/Scripts/bootstrap.js" type="text/javascript"></script>
+</head>
+<body>
+    <header>
+        <div class="header-wrapper">
+            <img src="~/Content/svg/tools-white.svg" alt="icon" class="header-ico">
+            @{
+                if (ViewBag.User.Role.role_name == "Администратор")
+                {
+                    <div class="header-admin-box">
+                        <a href="@Url.Action("Main", "Request")">Заявки</a>
+                        <a href="@Url.Action("Main", "Admin")">Управление</a>
+                    </div>
+                }
+            }
+
+            <p class="header-user-name">@ViewBag.User.user_name</p>
+            <a href="@Url.Action("Logoff", "Authentication")" class="logoff">Выход</a>
+        </div>
+    </header>
+
+    @RenderBody()
+    @RenderSection("scripts", required: false)
+</body>
+</html>

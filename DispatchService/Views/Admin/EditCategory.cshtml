@@ -1,0 +1,24 @@
+﻿@model DispatchService.Models.Category
+
+@{
+    ViewBag.Title = "Редактирование категории";
+}
+
+<main>
+    <div class="main-wrapper">
+        <div class="request-page create-request-page" style="min-height: 200px;">
+            <button class="back-button" style="position: relative; margin-bottom: 20px; min-width: 124px;" onclick="location.href='@Url.Action("Main", "Admin")';">Назад</button>
+            @using (Html.BeginForm("EditCategory", "Admin", FormMethod.Post))
+            {
+                <div style="display: none;" name="id">@Model.category_id</div>
+                <h1 class="request-title" style="margin-bottom: 26px; font-size: 32px;">Редактирование категории</h1>
+                <div>
+                    <p class="box-title"><b>Название категории</b></p>
+                    <input type="text" id="category_name" name="category_name" class="input-box" style="width: 278px; margin-bottom: 10px;" value="@Model.category_name">
+                </div>
+                <button type="submit" class="create-req-button" style="min-width: 144px;">Сохранить</button>
+            }
+        </div>
+    </div>
+</main>
+

@@ -1,0 +1,46 @@
+﻿@*<script type="text/javascript">
+    $(document).ready(function () {
+        $("#stepId").change(function () {
+            if ($("#stepId").val() == 4) {
+                $("#days-block").show();
+            }
+            else {
+                $("#days-block").hide();
+            };
+        });
+    })
+</script>*@
+
+<div class="modal-content">
+    <div class="modal-header">
+        <button class="close" data-dismiss="modal" area-hidden="true">X</button>
+        <h1 class="request-title">Новый этап</h1>
+    </div>
+    <div class="modal-body">
+        @using (Html.BeginForm("AddStep", "Request", FormMethod.Post))
+        {
+            <div style="display: none;" id="id" name="id">@ViewBag.RequestId</div>
+            @*<div>
+                <p class="box-title"><b>Название этапа</b></p>
+                <select id="stepId" name="stepId" class="input-box" style="width: 221px; margin-right: 17px; margin-bottom: 20px;">
+                    @{
+                        foreach (var item in ViewBag.Steps)
+                        {
+                            <option value="@item.step_id">@item.step_name</option>
+                        }
+                    }
+                </select>
+            </div>*@
+            <div id="days-block" style="margin-bottom: 20px; display: flex; flex-direction: row; align-items: center;">
+                <p class="box-title"><b>Продлить на</b></p>
+                <input type="number" name="days" class="input-box" style="width: 81px; margin-left: 10px;" id="days" value="0" min="0">
+                <p class="box-title" style="margin-left: 10px;">дн.</p>
+            </div>
+            <div>
+                <p class="box-title"><b>Комментарий</b></p>
+                <textarea name="comment" id="comment" cols="30" rows="10" class="input-box create-desc-box"></textarea>
+            </div>
+            <button type="submit" class="create-req-button">Добавить</button>
+        }
+    </div>
+</div>
