@@ -35,10 +35,10 @@ namespace DispatchService.Controllers
                 {
                     street.Houses = db.Addresses
                         .Include(a => a.Street)
-                        .Where(a => a.Street.street_name == street.street) 
+                        .Where(a => a.Street.street_name == street.street)
                         .GroupBy(a => a.house)
                         .Select(a => new HouseModel { house = a.Key, flats = a.OrderBy(b => b.flat.Length).ThenBy(b => b.flat).Select(b => b.flat).ToList() })
-                        .OrderBy(a => a.house.Length).ThenBy(a => a.house).ToList(); 
+                        .OrderBy(a => a.house.Length).ThenBy(a => a.house).ToList();
                 }
 
                 ViewBag.Addresses = adm;
@@ -87,7 +87,7 @@ namespace DispatchService.Controllers
                 }
 
                 return View(user);
-            }            
+            }
         }
 
         [HttpPost]

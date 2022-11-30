@@ -1,7 +1,9 @@
 ﻿using DispatchService.Models;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
@@ -20,14 +22,14 @@ namespace DispatchService.Controllers
         }
 
         [HttpPost]
-        public ActionResult Login(LoginModel model)
+        public async Task<ActionResult> Login(LoginModel model)
         {         
             if (ModelState.IsValid)
             {
                 using (HCSContext db = new HCSContext())
                 {
                     User user = null;
-                    user = db.Users.FirstOrDefault(u => u.login == model.login && u.password == model.password);
+                    user = await db.Users.FirstOrDefaultAsync(u => u.login == model.login && u.password == model.password);
                     if (user != null)
                     {
                         FormsAuthentication.SetAuthCookie(model.login, true);
